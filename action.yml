@@ -13,6 +13,6 @@ runs:
   main: 'dist/index.js'
 
 
-branding:
+branding: ## only to push to marketplace
  icon: "award"
  color: "yellow"
