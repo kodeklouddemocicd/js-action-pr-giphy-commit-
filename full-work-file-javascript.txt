@@ -1,0 +1,164 @@
+# didnt work 
+creating action with nodejs without the dockerfile limitation 
+# 1. go to workspace where your code for docker file is 
+# 2. terminal > if not created mkdir /workspaces/docker-action-pr-giphy-comment
+# 3. npm init -y >> it makes a empty package.json 
+# 4. touch README.md 
+# 4. 1 touch action.yml
+# 5. go to original docker-action-pr-giphy-comment >> copy  into action.yml >> paste in new repo >> delete all everything under run 
+# 6. under runs: type in using: 'node20'
+# 6.1 under using type in main: 'index.js' >>> index.js is a file that gets created to execute the nodejs actions
+
+# 7. get the same giphy >> from developers >> put into repo secret name it GIPHY_API_KEY idqYFnLkI49KrLPz0kl5JcVMiAV9f3yI
+
+# 8. touch index.js >> paste in complete business logic (source code for the application)
+# 9. in the index.js file
+#const { Octokit } = require('@octokit/rest'); 
+#const Giphy = require('giphy-api');
+#const core = require('@action/core');
+#const github = require('@actions/github');
+
+# what does each mean 
+# @octokit/rest: the package provides the javascript client for the GitHub rest api it can do task like creating and updating issues pull requests and commits
+# @giphy-api: searching and fetching giphy services 
+# @action/core: works with GitHub workflows utilities, get input and set outputs and also get up log messages 
+# @actions/GitHub: set of utilities to get the current repo details and current pull request
+
+# 10. install each in terminal >> they will go to the empty package.json as dependencies
+npm i @actions/core@1.10.0
+npm i @actions/github@5.1.1
+npm i @octokit/rest@20.0.2
+npm i giphy-api@2.0.2
+
+# 10.1 output created the package-lockjson and node_modules that have the dependency details 
+
+# 11. go back to the index.js and input each line under const
+
+async function run() {
+   try {
+     const githubToken = core.getInput('GitHub-token');
+     const giphyApiKey = core.getInput('giphy-api-key');
+    
+     const octokit = new Octokit({auth: githubToken});
+     const giphy = Giphy(giphyApiKey);
+    
+     const context = github.context;
+     const {owner, repo, number } = context.issue;
+     const prComment = await giphy.random('thank you');
+
+     await octokit.issues.createComment({
+       owner,
+       repo,
+       issue_number: number,
+       body: `### PR - ${number} \n 🎉 Thank you for this contribution! \n ![Giphy](${prComment.data.images.downsized.url}) `
+     });
+     
+
+     core.setOutput('comment-url', `${prComment.data.images.downsized.url}`);
+     console.log(`Giphy GIF comment added successfully! Comment URL: ${prComment.data.images.downsized.url}`);
+   } catch (error) {
+     console.error('Error', error);
+     process.exit(1);
+   }
+}
+run();
+
+# what each line means in the source code 
+# 1. line 6-7 means user is using a sync function the runs the following commands below
+# 2. line 8-9 means its getting the github token and giphy_api_key from the github actions inputs to be passed on another repo, file, workflows, another users
+# 3. line: 11-12 create new instances octokit and giphy libraries passing in the github token and giphy api key 
+# 4. line 14-16 used for getting the owner repo and the issue number from the github context, the github context its a global object that contains the current information about current workflow and current pull request 
+##  line 17 it calls the random method from giphy library to get a random GIF for a specified string (get random thank you gifs)
+# line 19- 24 it creates the comment and calls with the octokit library to create a new comment on the issue. the comment body has a link to the giphy URL and the body is awaiting owner, repo and issue number to pass a message in the body   
+# lines 26 - 33 setups are used for other people to use your custom action and also create log messages that shows in the workflow when its passed
+
+#how to build the application 
+# 1. since the node_modules are big files it would be hard to build application manually in it without the snort file and develops avoid it >> alterative way is 
+# 2. it take scripts and dependences and packages it into 1 file in the package.json  
+npm install @vercel/ncc@0.38.0 
+# 3. package all the scripts and dependences into a 1 file and -o = output to a dist folder 
+npm install -g @vercel/ncc
+ncc build index.js -o dist 
+## 4. change actions.ymal file to dist/inxdex.js because the whole application/ source code is on it 
+main: 'dist/index.js'
+# 5. create a .gitignore file 
+touch .gitignore
+# 6. go the file and type node_modules >> there in because we created dist to hold files not node_modules 
+# 7. go to github create a repo with no README.md > go to codespace dev  >
+git init 
+git add . <<<< adds all the files and folder
+git commit -m 'first sync'
+# 8. go to the commits on the dev and comment and commit 
+# 9. go back to the created repo copy and paste in codespace 
+git remote add origin https://github.com/kodeklouddemocicd/js-action-pr-giphy-commit-.git
+login username 
+password 
+git push -u origin main
+10. check the code 
+
+How to push nodejs/custom action marketplace 
+# 1. after files are successfully imported go to code on github
+# 2. go to create a new release 
+# enable 2 factor auth 
+# 3. provide name, description, icon, color 
+# 4. add branding to your action.yml file, 
+branding: ## only to push 
+ icon: "award"
+ color: "yellow"
+# 5. make sure everything is in order 
+# 6. add the primary category 
+# 7. add tag << its used for version for example v3
+# 8. target: main branch
+# 9 name the release 
+# 10. description 
+# 11. publish
+
+uses: kodeklouddemocicd/js-action-pr-giphy-commit-@v1
+
+## how to use the marketplace custom giphy
+
+#1. go to solar.systems > go to the feature branch >> go to .github/workflows >> pr-thank-you.yml
+# 2. edit file add where post pr comment is this : 
+uses: kodeklouddemocicd/js-action-pr-giphy-commit-@v1
+# 3. commit changes > create a new branch > pull request > 2 gifs showing up one from old commit and new one from the custom actions 
+
+
+
+
+
+
+
+
+
+
+
+
+
+how to login with main branch and save my commits if it fails on codespace 
+
+That means gh doesn’t see a normal saved login — it only sees the workspace GITHUB_TOKEN.
+
+Do this instead:
+
+unset GITHUB_TOKEN
+unset GH_TOKEN
+
+gh auth login
+
+Choose:
+
+GitHub.com
+HTTPS
+Login with a web browser
+
+Then:
+
+gh auth setup-git
+gh auth status
+
+After it shows your real GitHub username, set the repo:
+
+git remote set-url origin https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git (skip if already logged in)
+git push -u origin main
+
+
